@@ -313,23 +313,39 @@ if __name__ == "__main__":
     import asyncio
     import argparse
     import time
+    import os
 
-    from app.core.database import engine
+    from app.core.config import get_settings
     from app.models import Base
 
     parser = argparse.ArgumentParser(description="Seed database with sample data")
     parser.add_argument("--tools", type=int, default=10000, help="Number of tools to generate")
     parser.add_argument("--batch-size", type=int, default=1000, help="Batch size for inserts")
-    args = parser.parse_args()
+    parser.add_argument("--mode", choices=["dev", "prod"], default="dev", help="Environment mode")
+    cli_args = parser.parse_args()
 
-    config = SeedConfig(tool_count=args.tools, batch_size=args.batch_size)
+    config = SeedConfig(tool_count=cli_args.tools, batch_size=cli_args.batch_size)
+    settings = get_settings(cli_args.mode)
 
     async def main():
+        from sqlalchemy.ext.asyncio import create_async_engine
+
+        # Create engine based on mode
+        if settings.is_dev:
+            engine = create_async_engine(
+                settings.async_db_url,
+                connect_args={"check_same_thread": False},
+            )
+        else:
+            engine = create_async_engine(settings.async_db_url)
+
         # Create tables first
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
 
-        print(f"Seeding database with {config.tool_count} tools...")
+        print(f"[{settings.ENV_MODE}] Seeding database with {config.tool_count} tools...")
+        print(f"[{settings.ENV_MODE}] Database: {settings.async_db_url.split('@')[-1] if '@' in settings.async_db_url else settings.async_db_url}")
+
         start = time.perf_counter()
         result = await seed_if_empty(config)
         elapsed = time.perf_counter() - start
@@ -337,7 +353,7 @@ if __name__ == "__main__":
         if result:
             print(f"Completed in {elapsed:.2f} seconds")
         else:
-            print("Database already seeded. Delete dev.db to reseed.")
+            print("Database already seeded. Delete database or use fresh instance to reseed.")
 
         await engine.dispose()
 
