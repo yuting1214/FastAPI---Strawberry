@@ -2,6 +2,8 @@
 
 A production-ready GraphQL API template with FastAPI, Strawberry GraphQL, and SQLAlchemy 2.0.
 
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/fastapi-strawberry-graphql?referralCode=jk_FgY&utm_medium=integration&utm_source=template&utm_campaign=generic)
+
 ## Quick Start
 
 ```bash
