@@ -67,7 +67,6 @@ venv.bak/
 
 # uv
 .python-version
-uv.lock
 
 # macOS
 .DS_Store

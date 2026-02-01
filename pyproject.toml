@@ -8,7 +8,6 @@ dependencies = [
     "strawberry-sqlalchemy-mapper>=0.8.0",
     "sqlalchemy[asyncio]>=2.0.0",
     "pydantic-settings>=2.0.0",
-    "alembic>=1.13.0",
     # Async drivers
     "asyncpg>=0.29.0",
     "aiosqlite>=0.19.0",

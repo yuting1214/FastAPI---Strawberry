@@ -25,7 +25,6 @@ open http://localhost:8000/graphql
 | ORM | SQLAlchemy 2.0 (async) |
 | Database | PostgreSQL (prod) / SQLite (dev) |
 | Settings | pydantic-settings |
-| Migrations | Alembic |
 
 ## Deployment
 
@@ -162,29 +161,6 @@ uv run ruff check .
 
 # Format
 uv run ruff format .
-```
-
-### Database Migrations
-
-```bash
-# Generate migration
-uv run alembic revision --autogenerate -m "description"
-
-# Apply migrations
-uv run alembic upgrade head
-
-# Rollback
-uv run alembic downgrade -1
-```
-
-### Production Migrations
-
-```bash
-export APP_MODE=prod
-export DATABASE_URL=postgresql://...
-
-uv run alembic revision --autogenerate -m "description"
-uv run alembic upgrade head
 ```
 
 ## Mock Data & Seeding
