@@ -8,13 +8,15 @@ from app.graphql.mutations import Mutation
 
 async def get_context():
     """
-    Provide session to all resolvers.
-    We use selectinload for eager loading to prevent N+1 queries.
+    Provide session factory to resolvers.
+
+    GraphQL resolvers execute concurrently, but SQLAlchemy async sessions
+    don't support concurrent operations. Each resolver gets its own session
+    via the factory to avoid conflicts.
     """
-    async with AsyncSessionLocal() as session:
-        yield {
-            "session": session,
-        }
+    return {
+        "session_factory": AsyncSessionLocal,
+    }
 
 
 schema = strawberry.Schema(

@@ -18,19 +18,19 @@ class CreateToolInput:
 class Mutation:
     @strawberry.mutation
     async def create_tool(self, info: Info, input: CreateToolInput) -> Tool:
-        session = info.context["session"]
-        tool = models.Tool(**strawberry.asdict(input))
-        session.add(tool)
-        await session.commit()
-        await session.refresh(tool)
-        return tool_from_model(tool)
+        async with info.context["session_factory"]() as session:
+            tool = models.Tool(**strawberry.asdict(input))
+            session.add(tool)
+            await session.commit()
+            await session.refresh(tool)
+            return tool_from_model(tool)
 
     @strawberry.mutation
     async def delete_tool(self, info: Info, id: int) -> bool:
-        session = info.context["session"]
-        tool = await session.get(models.Tool, id)
-        if not tool:
-            return False
-        await session.delete(tool)
-        await session.commit()
-        return True
+        async with info.context["session_factory"]() as session:
+            tool = await session.get(models.Tool, id)
+            if not tool:
+                return False
+            await session.delete(tool)
+            await session.commit()
+            return True

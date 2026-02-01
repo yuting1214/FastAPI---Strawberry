@@ -119,16 +119,16 @@ class Tool:
     @strawberry.field
     async def related_tools(self, info) -> list["Tool"]:
         """Custom resolver: Get other tools in the same category."""
-        session = info.context["session"]
-        stmt = (
-            select(models.Tool)
-            .where(models.Tool.category_id == self.category_id)
-            .where(models.Tool.id != self.id)
-            .limit(5)
-        )
-        result = await session.execute(stmt)
-        tools = result.scalars().all()
-        return [tool_from_model(t) for t in tools]
+        async with info.context["session_factory"]() as session:
+            stmt = (
+                select(models.Tool)
+                .where(models.Tool.category_id == self.category_id)
+                .where(models.Tool.id != self.id)
+                .limit(5)
+            )
+            result = await session.execute(stmt)
+            tools = result.scalars().all()
+            return [tool_from_model(t) for t in tools]
 
 
 def tool_from_model(tool: models.Tool, include_relations: bool = True) -> Tool:
