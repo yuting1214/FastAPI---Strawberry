@@ -6,7 +6,6 @@ Automatically seeds database, starts server, runs benchmarks.
 import asyncio
 import subprocess
 import time
-import signal
 import sys
 import os
 
@@ -43,7 +42,7 @@ async def wait_for_server(timeout=30):
                 r = await client.get(f"{BASE_URL}/health")
                 if r.status_code == 200:
                     return True
-            except:
+            except Exception:
                 pass
             await asyncio.sleep(0.5)
     return False
@@ -147,7 +146,7 @@ def stop_server(proc):
     proc.terminate()
     try:
         proc.wait(timeout=5)
-    except:
+    except Exception:
         proc.kill()
 
 

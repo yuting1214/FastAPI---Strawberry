@@ -190,7 +190,7 @@ async def run_benchmark(
 
 async def main():
     print(f"\n{'='*70}")
-    print(f"  BENCHMARK: REST vs GraphQL - Tool Detail Page")
+    print("  BENCHMARK: REST vs GraphQL - Tool Detail Page")
     print(f"  Tool ID: {TOOL_ID} | Iterations: {ITERATIONS}")
     print(f"{'='*70}\n")
 
@@ -244,10 +244,10 @@ async def main():
         overhead = (graphql.total_bytes / rest_joined.total_bytes - 1) * 100
         print(f"\n  GraphQL payload has {overhead:.1f}% overhead vs REST Joined (due to field names)")
 
-    print(f"\n  Note: GraphQL's advantage grows with:")
-    print(f"    - Higher network latency (reduces round trips)")
-    print(f"    - Mobile clients (smaller payloads)")
-    print(f"    - Varying client needs (request only needed fields)")
+    print("\n  Note: GraphQL's advantage grows with:")
+    print("    - Higher network latency (reduces round trips)")
+    print("    - Mobile clients (smaller payloads)")
+    print("    - Varying client needs (request only needed fields)")
 
 
 if __name__ == "__main__":

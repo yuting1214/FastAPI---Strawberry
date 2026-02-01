@@ -1,3 +1,23 @@
+"""
+FastAPI + Strawberry GraphQL API
+
+Supports:
+- Dev mode: SQLite, debug enabled
+- Prod mode: PostgreSQL via DATABASE_URL
+
+Both modes auto-create tables and seed sample data on first startup.
+Subsequent restarts skip seeding (data already exists).
+
+Usage:
+    # Development (default)
+    uvicorn app.main:app --reload
+
+    # Production (via module)
+    python -m app.main --mode prod --host 0.0.0.0 --port 8000
+
+    # Production (via Docker)
+    docker run -e DATABASE_URL=... -p 8000:8000 image
+"""
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import TypedDict
@@ -6,7 +26,7 @@ import anyio
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.core.config import get_settings
+from app.core.init_settings import settings, args
 from app.core.database import engine
 from app.db.seed import seed_if_empty
 from app.graphql.schema import graphql_router
@@ -14,45 +34,42 @@ from app.rest.router import router as rest_router
 from app.models import Base
 
 
-settings = get_settings()
-
-
 class State(TypedDict):
-    """Lifespan state - typed dict for type safety."""
+    """Lifespan state."""
     pass
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[State]:
-    """
-    Lifespan context manager for startup/shutdown.
-    Use lifespan state instead of app.state (modern pattern).
-    """
-    # Startup
-    if settings.is_dev:
-        # Auto-create tables in dev (use Alembic in prod)
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
-        # Seed mock data if empty
-        if await seed_if_empty():
-            print("Database seeded with mock data")
+    """Startup and shutdown logic."""
+    # Startup: Create tables if they don't exist (both dev and prod)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
-    # Increase thread pool for sync dependencies if needed
+    # Seed sample data only if database is empty (first-time setup)
+    if await seed_if_empty():
+        print(f"[{settings.ENV_MODE}] Database seeded with sample data")
+
+    print(f"[{settings.ENV_MODE}] Server starting...")
+    print(f"[{settings.ENV_MODE}] Database: {settings.async_db_url.split('@')[-1] if '@' in settings.async_db_url else settings.async_db_url}")
+
+    # Increase thread pool for sync operations
     limiter = anyio.to_thread.current_default_thread_limiter()
-    limiter.total_tokens = 100  # Default is 40
+    limiter.total_tokens = 100
 
     yield {}
 
     # Shutdown
     await engine.dispose()
+    print(f"[{settings.ENV_MODE}] Server stopped")
 
 
 app = FastAPI(
-    title="LLM Tools API",
-    description="GraphQL + REST API for comparison",
-    version="0.1.0",
+    title=settings.APP_NAME,
+    description="GraphQL + REST API with FastAPI and Strawberry",
+    version=settings.APP_VERSION,
     lifespan=lifespan,
-    debug=settings.debug,
+    debug=settings.DEBUG,
 )
 
 # CORS
@@ -64,13 +81,28 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount GraphQL
+# Mount routers
 app.include_router(graphql_router, prefix="/graphql")
-
-# Mount REST API (for comparison)
 app.include_router(rest_router)
 
 
 @app.get("/health")
 async def health():
-    return {"status": "ok", "env": settings.app_env}
+    """Health check endpoint."""
+    return {
+        "status": "ok",
+        "mode": settings.ENV_MODE,
+        "version": settings.APP_VERSION,
+    }
+
+
+# Allow running as module: python -m app.main --mode prod
+if __name__ == "__main__":
+    import uvicorn
+
+    uvicorn.run(
+        "app.main:app",
+        host=args.host,
+        port=args.port,
+        reload=settings.is_dev,
+    )

@@ -139,7 +139,6 @@ def tool_from_model(tool: models.Tool, include_relations: bool = True) -> Tool:
         include_relations: Whether to include eagerly-loaded relationships.
                           Set to False when relationships aren't loaded.
     """
-    from sqlalchemy.orm import object_session
     from sqlalchemy.inspection import inspect
 
     # Helper to safely get relationship if it's loaded

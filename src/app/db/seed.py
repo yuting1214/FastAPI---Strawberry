@@ -313,7 +313,6 @@ if __name__ == "__main__":
     import asyncio
     import argparse
     import time
-    import os
 
     from app.core.config import get_settings
     from app.models import Base
