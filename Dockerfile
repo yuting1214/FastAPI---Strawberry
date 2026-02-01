@@ -30,8 +30,6 @@ COPY --from=builder /app/.venv /app/.venv
 
 # Copy application code
 COPY src/ ./src/
-COPY alembic/ ./alembic/
-COPY alembic.ini ./
 
 # Set Python path for module imports
 ENV PYTHONPATH="/app/src"
