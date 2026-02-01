@@ -1,0 +1,44 @@
+[project]
+name = "my-graphql-api"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115.0",
+    "strawberry-graphql[fastapi]>=0.220.0",
+    "strawberry-sqlalchemy-mapper>=0.8.0",
+    "sqlalchemy[asyncio]>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "alembic>=1.13.0",
+    # Async drivers
+    "asyncpg>=0.29.0",
+    "aiosqlite>=0.19.0",
+    # Performance (uvloop not on Windows)
+    "uvicorn[standard]>=0.30.0",
+    "uvloop>=0.19.0; sys_platform != 'win32'",
+    "httptools>=0.6.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+    "anyio>=4.0.0",
+    "httpx>=0.27.0",
+    "asgi-lifespan>=2.1.0",
+    "ruff>=0.4.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/app"]
